@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Above the Noise</title>
+<meta name="description" content="A signal log by Sangría: campaigns, formats and moves worth your attention.">
+<link rel="alternate" type="application/json" href="feed.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a wordmark header with the accent mark, a filter row, then a grid of poster cards (solid color + type, or the post's own image) that stacks to one column on phones. */
+:root{
+  --bg:#FBF6F7; --surface:#FFFFFF; --fg:#1D0F14; --muted:#75606A; --line:#E7D8DD;
+  --accent:#D5085C; --accent-fg:#FFFFFF; --brand:#D5085C; --chip:#F1E4E8; --citrus:#B34E06; --hero:#ECEEF5;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"DM Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#160B0F; --surface:#21131A; --fg:#F5E8EC; --muted:#A88E98; --line:#3A2630;
+    --accent:#FF5C85; --accent-fg:#1D0F14; --chip:#2C1A22; --citrus:#FFA552; --hero:#07040A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#160B0F; --surface:#21131A; --fg:#F5E8EC; --muted:#A88E98; --line:#3A2630;
+  --accent:#FF5C85; --accent-fg:#1D0F14; --chip:#2C1A22; --citrus:#FFA552; --hero:#07040A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:16px;padding-block:22px 64px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.hero{position:relative;overflow:hidden;border-radius:20px;background:var(--hero);padding:16px 20px 22px;display:flex;flex-direction:column;gap:clamp(56px,11vw,120px)}
+#waves{position:absolute;inset:0;width:100%;height:100%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--hero) 0%,transparent 60%);opacity:.8;pointer-events:none}
+.hero>div{position:relative;z-index:1}
+.htop{display:flex;justify-content:flex-end}
+.tgl{display:grid;place-items:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid var(--fg);background:transparent;color:var(--fg);cursor:pointer}
+.tgl svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tgl:hover{background:var(--fg);color:var(--bg)}
+.bar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap}
+.by b{font-weight:500;color:var(--brand)}
+.logo{display:flex;align-items:center;gap:.28em;font-family:var(--display);font-weight:800;font-size:clamp(1.85rem,5.4vw,3rem);line-height:1;letter-spacing:-.035em;white-space:nowrap}
+.logo svg{height:.72em;width:auto;flex:none;fill:var(--brand)}
+.by{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.follow{display:flex;gap:8px;flex-wrap:wrap}
+.follow input{font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;width:200px;max-width:100%}
+.btn{font:500 14px var(--body);padding:8px 16px;border-radius:999px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.note{font-family:var(--mono);font-size:12px;color:var(--citrus);margin-top:8px}
+
+.intro{display:flex;justify-content:space-between;align-items:baseline;gap:8px 24px;flex-wrap:wrap;margin-top:20px}
+.intro p{margin:0;font-size:1.0625rem;max-width:52ch}
+.intro span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* controls */
+.controls{display:flex;gap:12px;align-items:center;margin-top:18px}
+#q{font:inherit;font-size:14px;flex:0 0 220px;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg)}
+.tags{display:flex;gap:6px;overflow-x:auto;padding-block:4px;flex:1 1 auto;min-width:0;scrollbar-width:thin}
+.tag{font-family:var(--mono);font-size:12.5px;padding:6px 12px;border:0;border-radius:999px;background:var(--chip);color:var(--fg);cursor:pointer;white-space:nowrap}
+.tag span{color:var(--muted);margin-left:6px;font-variant-numeric:tabular-nums}
+.tag[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.tag[aria-pressed="true"] span{color:inherit}
+
+/* poster cards: each carries its own colors, so they read the same in light and dark */
+.feed{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:20px}
+.card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:340px;padding:20px;border-radius:18px;overflow:hidden;min-width:0;background:var(--cb) center 30%/cover no-repeat;color:var(--cf)}
+.card.img{min-height:440px;justify-content:flex-end;gap:14px}
+.card.img::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(18,7,11,.95) 0%,rgba(18,7,11,.82) 38%,rgba(18,7,11,.15) 72%,rgba(18,7,11,0) 100%)}
+.ctop,.cbot{position:relative;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ptags{display:flex;gap:2px 12px;flex-wrap:wrap;font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1;letter-spacing:-.02em;color:var(--ch)}
+.card.img .ptags{font-size:1.05rem}
+.ptags button{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.ptags button:hover{text-decoration:underline}
+.card h2{font-family:var(--display);font-weight:800;line-height:1.02;letter-spacing:-.03em;margin:0;text-wrap:balance;overflow-wrap:anywhere;font-size:1.55rem}
+.card h2.m{font-size:2rem}
+.card h2.l{font-size:2.6rem}
+.card.img h2,.card.img h2.m,.card.img h2.l{font-size:1.5rem;line-height:1.06}
+.card p{margin:0;font-size:.9rem;opacity:.85}
+.date{font-family:var(--mono);font-size:11.5px;opacity:.75}
+.links{display:flex;gap:6px;flex-wrap:wrap}
+.links a{display:inline-flex;gap:7px;align-items:baseline;font-size:12.5px;text-decoration:none;color:inherit;padding:4px 10px;border:1px solid color-mix(in srgb,currentColor 40%,transparent);border-radius:999px;max-width:100%}
+.links a:hover{border-color:currentColor}
+.links a small{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;opacity:.75}
+.more{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 4px}
+.more span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.lm{font-size:13px;letter-spacing:.1em;padding:13px 34px}
+.lm:disabled{opacity:.6;cursor:default}
+.empty{grid-column:1/-1;padding:40px 0;color:var(--muted)}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);max-width:72ch}
+
+@media (max-width:980px){.feed{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .feed{grid-template-columns:minmax(0,1fr);gap:14px}
+  .card{min-height:280px}.card.img{min-height:400px}
+  .controls{flex-direction:column;align-items:stretch}
+  #q{flex:none;width:100%}
+  .bar>div:last-child{width:100%}.hero{padding-inline:16px}.follow input{flex:1 1 150px;width:auto}
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+  <canvas id="waves" aria-hidden="true"></canvas>
+  <div class="htop"><button class="tgl" id="theme" type="button" aria-label="Switch to dark mode"><svg id="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg><svg id="i-sun" viewBox="0 0 24 24" aria-hidden="true" hidden><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button></div>
+  <div class="bar">
+    <div>
+      <div class="logo"><svg viewBox="0 0 62 62" aria-hidden="true"><path d="M21 0h41L41 62H0z"/></svg>Above the Noise</div>
+      <div class="by">A signal log by <b>Sangría</b></div>
+    </div>
+    <div>
+      <form class="follow" id="follow">
+        <input id="email" type="email" placeholder="you@company.com" aria-label="Email for the weekly edit">
+        <button class="btn" type="submit">Get the weekly edit</button>
+      </form>
+      <div class="note" id="note" role="status" hidden></div>
+    </div>
+  </div>
+  </header>
+
+  <div class="intro">
+    <p>The campaigns, formats and moves worth your attention. Picked by people, posted the minute we see them.</p>
+    <span id="range"></span>
+  </div>
+
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search brand, format, idea" aria-label="Search posts">
+    <div class="tags" id="tags"></div>
+  </div>
+
+  <main class="feed" id="feed"></main>
+
+  <footer>Built from the <span id="fc"></span> posts in #above-the-noise, shown as written in Slack and synced automatically. Cards with a photo use the image attached to that Slack post; the rest are set in a color tied to their tag.</footer>
+</div>
+
+
+<script>
+/* Content loads from feed.json (written by scripts/sync_slack.py); nothing below needs editing on a content refresh. */
+function start(FEED){
+const P=FEED.posts.map(o=>[o.date,o.time,o.tags,o.title,o.links||[],o.body||null]);
+/* Images are files in img/; the browser only fetches the ones on cards being shown. */
+const PAGE=18;let shown=PAGE;
+const imgOf=o=>o.img||null;
+const loadOld=()=>Promise.resolve();
+
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const src=u=>{const h=new URL(u).hostname.replace(/^www\./,'');
+  if(h==='lnkd.in')return'LinkedIn';if(h.includes('instagram'))return'Instagram';
+  if(h.includes('youtu'))return'YouTube';if(h.includes('builder.io'))return'PDF';return h};
+let active=null,query='';
+try{active=localStorage.getItem('atn-tag')||null}catch(e){}
+
+/* card color follows the tag: [background, text, tag color] */
+const PAL=[
+ ['#6E0E2B','#F9E4E9','#F59A3A'],
+ ['#F6DCE2','#4A0A1E','#C2163F'],
+ ['#F0861A','#1D0F14','#5C0B24'],
+ ['#1D0F14','#F6DCE2','#F0861A'],
+ ['#2B5E48','#F3EBDD','#F0D152'],
+ ['#F0D152','#1D0F14','#7A0F2E'],
+ ['#C2163F','#FFFFFF','#F7D95E']
+];
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+
+const counts={};P.forEach(p=>p[2].forEach(t=>counts[t]=(counts[t]||0)+1));
+const tagList=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
+if(active&&!counts[active])active=null;
+
+function setTag(t){shown=PAGE;active=(t===active)?null:t;try{active?localStorage.setItem('atn-tag',active):localStorage.removeItem('atn-tag')}catch(e){}draw()}
+
+function drawTags(){const box=document.getElementById('tags');box.textContent='';
+  const mk=(name,n,key)=>{const b=el('button','tag',name);b.type='button';b.appendChild(el('span',null,n));
+    b.setAttribute('aria-pressed',String(active===key));b.onclick=()=>key===null?(active&&setTag(active)):setTag(key);box.appendChild(b)};
+  mk('All',P.length,null);tagList.forEach(t=>mk('#'+t,counts[t],t))}
+
+function draw(){drawTags();const feed=document.getElementById('feed');feed.textContent='';
+  const q=query.trim().toLowerCase();
+  const rows=P.map((p,i)=>[p,i]).filter(([p])=>(!active||p[2].includes(active))&&(!q||(p[3]+' '+p[2].join(' ')+' '+(p[5]||'')).toLowerCase().includes(q)));
+  if(!rows.length){feed.appendChild(el('div','empty','Nothing matches. Clear the search or pick another tag.'));return}
+  const vis=rows.slice(0,shown);
+  vis.forEach(([p,i])=>{
+    const img=imgOf(FEED.posts[i]),a=el('article','card'+(img?' img':''));
+    const [cb,cf,ch]=img?['#1D0F14','#FFFFFF','#F7D95E']:PAL[hash(p[2][0])%PAL.length];
+    a.style.setProperty('--cb',cb);a.style.setProperty('--cf',cf);a.style.setProperty('--ch',ch);
+    if(img)a.style.backgroundImage='url("'+img+'")';
+    const top=el('div','ctop'),bot=el('div','cbot'),pt=el('div','ptags');
+    p[2].forEach(t=>{const b=el('button',null,'#'+t);b.type='button';b.onclick=()=>{if(active!==t)setTag(t)};pt.appendChild(b)});
+    const n=p[3].length;top.append(pt,el('h2',n<=40?'l':n<=75?'m':null,p[3]));
+    if(p[5])bot.appendChild(el('p',null,p[5].split('. ')[0]+'.'));
+    if(p[4].length){const ls=el('div','links');p[4].forEach(l=>{const k=el('a');k.href=l[1];k.target='_blank';k.rel='noopener';
+      k.append(el('small',null,l[0]),el('span',null,src(l[1])+' ↗'));ls.appendChild(k)});bot.appendChild(ls)}
+    const d=new Date(p[0]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    bot.appendChild(el('div','date',d+' · '+p[1]));
+    a.append(top,bot);feed.appendChild(a)});
+  if(rows.length>shown){const m=el('div','more'),b=el('button','btn lm','LOAD MORE');b.type='button';b.id='more';
+    b.onclick=()=>{b.disabled=true;b.textContent='LOADING…';loadOld().then(()=>{shown+=PAGE;draw()})};
+    m.append(b,el('span',null,'Showing '+vis.length+' of '+rows.length));feed.appendChild(m)}
+}
+
+const fd=s=>new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+document.getElementById('range').textContent=P.length+' posts · '+fd(P[P.length-1][0])+' to '+fd(P[0][0])+' · updated '+FEED.updated;
+document.getElementById('fc').textContent=P.length;
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value;shown=PAGE;draw()});
+document.getElementById('follow').addEventListener('submit',e=>{e.preventDefault();
+  const n=document.getElementById('note');n.hidden=false;n.textContent='Sign-ups open soon. Thanks for the interest.'});
+draw();
+}
+/* content comes from feed.json, rewritten by the Slack sync; no-cache so a fresh sync shows up on the next visit */
+fetch('feed.json',{cache:'no-cache'}).then(r=>r.json()).then(start).catch(()=>{
+  const f=document.getElementById('feed');f.textContent='';
+  const e=document.createElement('div');e.className='empty';e.textContent='The feed could not load. Refresh to try again.';f.appendChild(e)});
+
+/* theme toggle: sets data-theme on the root, remembered per browser */
+const root=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');
+const isDark=()=>root.dataset.theme?root.dataset.theme==='dark':mq.matches;
+const tbtn=document.getElementById('theme');
+function syncTheme(){const d=isDark();document.getElementById('i-sun').toggleAttribute('hidden',!d);document.getElementById('i-moon').toggleAttribute('hidden',d);tbtn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');tbtn.title=d?'Light mode':'Dark mode';paint()}
+try{const t=localStorage.getItem('atn-theme');if(t)root.dataset.theme=t}catch(e){}
+tbtn.addEventListener('click',()=>{const t=isDark()?'light':'dark';root.dataset.theme=t;try{localStorage.setItem('atn-theme',t)}catch(e){}syncTheme()});
+mq.addEventListener('change',syncTheme);
+new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['data-theme']});
+
+/* header waves: ribbons of fine lines that fan out and pinch, drifting slowly */
+const cv=document.getElementById('waves'),cx=cv.getContext('2d');
+const HUES=['#D5085C','#7B3FF2','#19B6E8','#FF8A2A'];
+let T=0;
+function paint(){
+  const r=cv.getBoundingClientRect(),d=Math.min(window.devicePixelRatio||1,2),W=Math.round(r.width*d),H=Math.round(r.height*d);
+  if(!W||!H)return;if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H}
+  const dark=isDark();cx.clearRect(0,0,W,H);
+  cx.globalCompositeOperation=dark?'lighter':'multiply';cx.lineWidth=d*.7;cx.globalAlpha=dark?.34:.42;
+  const N=44,step=6*d;
+  for(let k=0;k<3;k++){
+    const g=cx.createLinearGradient(0,0,W,0);
+    for(let c=0;c<4;c++)g.addColorStop(c/3,HUES[(c+k)%4]);
+    cx.strokeStyle=g;
+    for(let j=0;j<N;j++){const t=j/N;cx.beginPath();
+      for(let x=0;x<=W+step;x+=step){const u=x/W,amp=H*.36*(.3+.7*u);
+        const y=H*(.5+.07*(k-1))+H*.09*Math.sin(T*1.1+k*2.2+u*2.4)
+          +amp*(1+.4*Math.sin(T*1.6+k*1.9+u*3))*Math.sin(u*7.5+k*2.1+t*1.5+T*.5)*(.55+.45*Math.sin(u*2.3+k+T*.23))
+          +(t-.5)*H*.42*Math.sin(u*5+k*1.7+T*.31);
+        x?cx.lineTo(x,y):cx.moveTo(x,y)}
+      cx.stroke()}}
+}
+let last=0;
+function loop(ts){if(ts-last>33){last=ts;T+=.016;paint()}requestAnimationFrame(loop)}
+syncTheme();
+addEventListener('resize',paint);
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches)requestAnimationFrame(loop);
+</script>
+
+
+
+</body>
+</html>

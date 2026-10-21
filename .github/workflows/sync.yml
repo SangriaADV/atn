@@ -1,0 +1,73 @@
+name: Sync from Slack and publish
+
+on:
+  schedule:
+    # GitHub runs schedules in UTC. 13:00 and 21:00 UTC = 9 AM and 5 PM Eastern while
+    # daylight time is on; from November to March they land at 8 AM and 4 PM Eastern.
+    - cron: "0 13,21 * * *"
+  workflow_dispatch:
+    inputs:
+      full_resync:
+        description: "Rebuild the whole feed from the channel history"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["docs/**"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: atn
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Pull new posts from #above-the-noise
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_CHANNEL_ID }}
+          FULL_RESYNC: ${{ inputs.full_resync && '1' || '0' }}
+        run: python scripts/sync_slack.py
+
+      - name: Save changes to the repo
+        run: |
+          if [ -z "$(git status --porcelain docs)" ]; then echo "Nothing new."; exit 0; fi
+          git config user.name "atn-sync"
+          git config user.email "atn-sync@users.noreply.github.com"
+          git add docs
+          git commit -m "Sync from Slack: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
+
+  deploy:
+    needs: sync
+    if: always() && needs.sync.result != 'failure' && needs.sync.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
