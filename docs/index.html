@@ -98,7 +98,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
   .card{min-height:280px}.card.img{min-height:400px}
   .controls{flex-direction:column;align-items:stretch}
   #q{flex:none;width:100%}
-  .bar>div:last-child{width:100%}.hero{padding-inline:16px}.follow input{flex:1 1 150px;width:auto}
+  .hero{padding-inline:16px}.follow input{flex:1 1 150px;width:auto}
 }
 </style>
 
@@ -112,13 +112,6 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
     <div>
       <div class="logo"><svg viewBox="0 0 62 62" aria-hidden="true"><path d="M21 0h41L41 62H0z"/></svg>Above the Noise</div>
       <div class="by">A signal log by <b>Sangría</b></div>
-    </div>
-    <div>
-      <form class="follow" id="follow">
-        <input id="email" type="email" placeholder="you@company.com" aria-label="Email for the weekly edit">
-        <button class="btn" type="submit">Get the weekly edit</button>
-      </form>
-      <div class="note" id="note" role="status" hidden></div>
     </div>
   </div>
   </header>
@@ -206,8 +199,6 @@ const fd=s=>new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',da
 document.getElementById('range').textContent=P.length+' posts · '+fd(P[P.length-1][0])+' to '+fd(P[0][0])+' · updated '+FEED.updated;
 document.getElementById('fc').textContent=P.length;
 document.getElementById('q').addEventListener('input',e=>{query=e.target.value;shown=PAGE;draw()});
-document.getElementById('follow').addEventListener('submit',e=>{e.preventDefault();
-  const n=document.getElementById('note');n.hidden=false;n.textContent='Sign-ups open soon. Thanks for the interest.'});
 draw();
 }
 /* content comes from feed.json, rewritten by the Slack sync; no-cache so a fresh sync shows up on the next visit */
