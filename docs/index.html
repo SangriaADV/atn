@@ -90,7 +90,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px
 .lm{font-size:13px;letter-spacing:.1em;padding:13px 34px}
 .lm:disabled{opacity:.6;cursor:default}
 .empty{grid-column:1/-1;padding:40px 0;color:var(--muted)}
-footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);max-width:72ch}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-align:center}
 
 @media (max-width:980px){.feed{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){
@@ -128,7 +128,7 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-si
 
   <main class="feed" id="feed"></main>
 
-  <footer>Built from the <span id="fc"></span> posts in #above-the-noise, shown as written in Slack and synced automatically. Cards with a photo use the image attached to that Slack post; the rest are set in a color tied to their tag.</footer>
+  <footer>// BUILT TO SPARK, ENGINEERED FOR WONDER //</footer>
 </div>
 
 
@@ -167,9 +167,9 @@ if(active&&!counts[active])active=null;
 function setTag(t){shown=PAGE;active=(t===active)?null:t;try{active?localStorage.setItem('atn-tag',active):localStorage.removeItem('atn-tag')}catch(e){}draw()}
 
 function drawTags(){const box=document.getElementById('tags');box.textContent='';
-  const mk=(name,n,key)=>{const b=el('button','tag',name);b.type='button';b.appendChild(el('span',null,n));
+  const mk=(name,n,key)=>{const b=el('button','tag',name);b.type='button';if(n!=null)b.appendChild(el('span',null,n));
     b.setAttribute('aria-pressed',String(active===key));b.onclick=()=>key===null?(active&&setTag(active)):setTag(key);box.appendChild(b)};
-  mk('All',P.length,null);tagList.forEach(t=>mk('#'+t,counts[t],t))}
+  mk('All',null,null);tagList.forEach(t=>mk('#'+t,counts[t],t))}
 
 function draw(){drawTags();const feed=document.getElementById('feed');feed.textContent='';
   const q=query.trim().toLowerCase();
@@ -196,8 +196,7 @@ function draw(){drawTags();const feed=document.getElementById('feed');feed.textC
 }
 
 const fd=s=>new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-document.getElementById('range').textContent=P.length+' posts · '+fd(P[P.length-1][0])+' to '+fd(P[0][0])+' · updated '+FEED.updated;
-document.getElementById('fc').textContent=P.length;
+document.getElementById('range').textContent='Last update '+FEED.updated;
 document.getElementById('q').addEventListener('input',e=>{query=e.target.value;shown=PAGE;draw()});
 draw();
 }
