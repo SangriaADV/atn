@@ -2,9 +2,9 @@ name: Sync from Slack and publish
 
 on:
   schedule:
-    # GitHub runs schedules in UTC. 13:00 and 21:00 UTC = 9 AM and 5 PM Eastern while
-    # daylight time is on; from November to March they land at 8 AM and 4 PM Eastern.
-    - cron: "0 13,21 * * *"
+    # Every 15 minutes. GitHub can start scheduled runs a few minutes late.
+    # Runs with no new Slack posts finish in seconds and don't republish the site.
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       full_resync:
@@ -29,6 +29,8 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      changed: ${{ steps.save.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,17 +48,22 @@ jobs:
         run: python scripts/sync_slack.py
 
       - name: Save changes to the repo
+        id: save
         run: |
-          if [ -z "$(git status --porcelain docs)" ]; then echo "Nothing new."; exit 0; fi
+          if [ -z "$(git status --porcelain docs)" ]; then echo "Nothing new."; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git config user.name "atn-sync"
           git config user.email "atn-sync@users.noreply.github.com"
           git add docs
           git commit -m "Sync from Slack: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: sync
-    if: always() && needs.sync.result != 'failure' && needs.sync.result != 'cancelled'
+    # publish on a push, a manual run, or a scheduled run that found new posts
+    if: >-
+      always() && needs.sync.result != 'failure' && needs.sync.result != 'cancelled' &&
+      (github.event_name != 'schedule' || needs.sync.outputs.changed == 'true')
     runs-on: ubuntu-latest
     environment:
       name: github-pages

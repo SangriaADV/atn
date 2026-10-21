@@ -5,14 +5,14 @@ A signal log by Sangría. The feed is built from the #above-the-noise Slack chan
 ## How it works
 
 ```
-Slack #above-the-noise ──(9 AM + 5 PM ET)──> GitHub Action ──> docs/feed.json + docs/img/ ──> GitHub Pages ──> Wix embed
+Slack #above-the-noise ──(every 15 min)──> GitHub Action ──> docs/feed.json + docs/img/ ──> GitHub Pages ──> Wix embed
 ```
 
 - `docs/index.html`: the page (design, filters, dark mode). Reads `feed.json` on load.
 - `docs/feed.json`: every post. Rewritten by the sync, never edited by hand.
 - `docs/img/`: card images pulled from Slack, resized to 760px wide.
 - `scripts/sync_slack.py`: reads the channel and updates the two items above.
-- `.github/workflows/sync.yml`: runs the sync twice a day, then publishes.
+- `.github/workflows/sync.yml`: checks Slack every 15 minutes and publishes when there are new posts.
 
 ## Posting format in Slack
 
