@@ -2,9 +2,9 @@ name: Sync from Slack and publish
 
 on:
   schedule:
-    # Every 15 minutes. GitHub can start scheduled runs a few minutes late.
+    # Every 15 minutes, on off-peak minutes: GitHub drops more scheduled runs at :00.
     # Runs with no new Slack posts finish in seconds and don't republish the site.
-    - cron: "*/15 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       full_resync:
