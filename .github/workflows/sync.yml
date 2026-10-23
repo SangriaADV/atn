@@ -60,10 +60,10 @@ jobs:
 
   deploy:
     needs: sync
-    # publish on a push, a manual run, or a scheduled run that found new posts
+    # publish on a push, a full resync, or any run that found new posts
     if: >-
       always() && needs.sync.result != 'failure' && needs.sync.result != 'cancelled' &&
-      (github.event_name != 'schedule' || needs.sync.outputs.changed == 'true')
+      (github.event_name == 'push' || needs.sync.outputs.changed == 'true' || inputs.full_resync == true)
     runs-on: ubuntu-latest
     environment:
       name: github-pages
