@@ -1,7 +1,41 @@
 {
- "updated": "Nov 19, 11:37 AM ET",
+ "updated": "Nov 19, 2:00 PM ET",
  "channel": "C0B1T18SH0Q",
  "posts": [
+  {
+   "ts": "1795107231.422239",
+   "date": "2026-11-19",
+   "time": "11:53 AM",
+   "tags": [
+    "AI",
+    "Watermark"
+   ],
+   "title": "Google SynthID. A tool to watermark and identify content generated through AI",
+   "links": [
+    [
+     "Site",
+     "https://deepmind.google/models/synthid/"
+    ]
+   ],
+   "img": "img/1795107231.422239.jpg"
+  },
+  {
+   "ts": "1795106796.664479",
+   "date": "2026-11-19",
+   "time": "11:46 AM",
+   "tags": [
+    "WorldBuilding",
+    "Voice"
+   ],
+   "title": "Spoken World is a real-time 3D world you shape by talking. Part open-ended game, part film set.",
+   "links": [
+    [
+     "Post",
+     "https://lnkd.in/p/epxc8GKe"
+    ]
+   ],
+   "img": "img/1795106796.664479.jpg"
+  },
   {
    "ts": "1795106190.385029",
    "date": "2026-11-19",
