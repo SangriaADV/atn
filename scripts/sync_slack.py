@@ -133,14 +133,16 @@ def parse(text):
 def first_image(msg):
     for f in msg.get("files") or []:
         if (f.get("mimetype") or "").startswith("image/"):
-            return f.get("url_private_download") or f.get("url_private")
-    return None
+            return f.get("id"), f.get("url_private_download") or f.get("url_private")
+    return None, None
 
 
-def save_image(ts, url):
+def save_image(ts, file_id, url):
     from PIL import Image  # imported here so parse tests run without Pillow
 
-    path = IMG / f"{ts}.jpg"
+    # Name the file after the Slack file id, so swapping the image in Slack
+    # produces a new file (and a new URL that browsers won't serve from cache).
+    path = IMG / (f"{ts}-{file_id}.jpg" if file_id else f"{ts}.jpg")
     if path.exists():
         return f"img/{path.name}"
     im = Image.open(io.BytesIO(download(url)))
@@ -153,6 +155,9 @@ def save_image(ts, url):
     if im.width > IMG_WIDTH:
         im = im.resize((IMG_WIDTH, round(im.height * IMG_WIDTH / im.width)), Image.LANCZOS)
     im.save(path, "JPEG", quality=80, optimize=True, progressive=True)
+    for old in [IMG / f"{ts}.jpg", *IMG.glob(f"{ts}-*.jpg")]:  # drop the replaced image
+        if old != path and old.exists():
+            old.unlink()
     return f"img/{path.name}"
 
 
@@ -171,10 +176,10 @@ def to_post(msg):
             "tags": tags, "title": title, "links": links}
     if body:
         post["body"] = body
-    url = first_image(msg)
+    file_id, url = first_image(msg)
     if url:
         try:
-            post["img"] = save_image(ts, url)
+            post["img"] = save_image(ts, file_id, url)
         except Exception as e:  # keep the post as a color card if the image fails
             print(f"  image skipped for {ts}: {e}")
     return post
