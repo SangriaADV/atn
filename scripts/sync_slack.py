@@ -190,7 +190,7 @@ def main():
 
     newest = max((float(t) for t in posts), default=0)
     oldest = 0 if FULL or not posts else min(newest, time.time() - RESYNC_DAYS * 86400)
-    msgs = history(f"{oldest:.6f}")
+    msgs = history(f"{oldest:.6f}" if oldest else "0")
     print(f"Read {len(msgs)} Slack messages since {datetime.fromtimestamp(oldest, TZ):%b %d %Y}")
 
     seen = set()
