@@ -87,6 +87,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px
 .links a small{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;opacity:.75}
 .more{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 4px}
 .more span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pager{flex-direction:row;justify-content:center;gap:18px;flex-wrap:nowrap}
+@media (max-width:640px){.pager{gap:8px}.pager .lm{padding:12px 16px;font-size:12px;letter-spacing:.06em}.pager span{font-size:11px;white-space:nowrap}}
+.lm:disabled{visibility:hidden}
 .lm{font-size:13px;letter-spacing:.1em;padding:13px 34px}
 .lm:disabled{opacity:.6;cursor:default}
 .empty{grid-column:1/-1;padding:40px 0;color:var(--muted)}
@@ -137,9 +140,9 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-fa
 function start(FEED){
 const P=FEED.posts.map(o=>[o.date,o.time,o.tags,o.title,o.links||[],o.body||null]);
 /* Images are files in img/; the browser only fetches the ones on cards being shown. */
-const PAGE=18;let shown=PAGE;
+/* Pagination: a fixed number of cards per page, so the feed always fits inside the Wix frame. */
+const perPage=()=>matchMedia('(max-width:640px)').matches?5:6;let page=0,lastPer=perPage();
 const imgOf=o=>o.img||null;
-const loadOld=()=>Promise.resolve();
 
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const src=u=>{const h=new URL(u).hostname.replace(/^www\./,'');
@@ -164,7 +167,7 @@ const counts={};P.forEach(p=>p[2].forEach(t=>counts[t]=(counts[t]||0)+1));
 const tagList=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]||a.localeCompare(b));
 if(active&&!counts[active])active=null;
 
-function setTag(t){shown=PAGE;active=(t===active)?null:t;try{active?localStorage.setItem('atn-tag',active):localStorage.removeItem('atn-tag')}catch(e){}draw()}
+function setTag(t){page=0;active=(t===active)?null:t;try{active?localStorage.setItem('atn-tag',active):localStorage.removeItem('atn-tag')}catch(e){}draw()}
 
 function drawTags(){const box=document.getElementById('tags');box.textContent='';
   const mk=(name,n,key)=>{const b=el('button','tag',name);b.type='button';if(n!=null)b.appendChild(el('span',null,n));
@@ -175,7 +178,8 @@ function draw(){drawTags();const feed=document.getElementById('feed');feed.textC
   const q=query.trim().toLowerCase();
   const rows=P.map((p,i)=>[p,i]).filter(([p])=>(!active||p[2].includes(active))&&(!q||(p[3]+' '+p[2].join(' ')+' '+(p[5]||'')).toLowerCase().includes(q)));
   if(!rows.length){feed.appendChild(el('div','empty','Nothing matches. Clear the search or pick another tag.'));return}
-  const vis=rows.slice(0,shown);
+  const per=perPage(),pages=Math.ceil(rows.length/per);if(page>=pages)page=pages-1;
+  const vis=rows.slice(page*per,page*per+per);
   vis.forEach(([p,i])=>{
     const img=imgOf(FEED.posts[i]),a=el('article','card'+(img?' img':''));
     const [cb,cf,ch]=img?['#1D0F14','#FFFFFF','#F7D95E']:PAL[hash(p[2][0])%PAL.length];
@@ -190,14 +194,22 @@ function draw(){drawTags();const feed=document.getElementById('feed');feed.textC
     const d=new Date(p[0]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
     bot.appendChild(el('div','date',d+' · '+p[1]));
     a.append(top,bot);feed.appendChild(a)});
-  if(rows.length>shown){const m=el('div','more'),b=el('button','btn lm','LOAD MORE');b.type='button';b.id='more';
-    b.onclick=()=>{b.disabled=true;b.textContent='LOADING…';loadOld().then(()=>{shown+=PAGE;draw()})};
-    m.append(b,el('span',null,'Showing '+vis.length+' of '+rows.length));feed.appendChild(m)}
+  if(pages>1){const m=el('div','more pager'),
+      prev=el('button','btn lm','← PREVIOUS'),next=el('button','btn lm','NEXT →');
+    prev.type=next.type='button';prev.disabled=page===0;next.disabled=page>=pages-1;
+    prev.onclick=()=>go(page-1);next.onclick=()=>go(page+1);
+    m.append(prev,el('span',null,'Page '+(page+1)+' of '+pages),next);feed.appendChild(m)}
 }
+/* change page, then bring the reader back to the top of the feed (inside the frame and on the Wix page) */
+function go(n){page=n;draw();
+  const top=document.getElementById('q').getBoundingClientRect().top+window.scrollY-16;
+  window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  try{if(window.parent!==window)window.parent.postMessage({atn:'top',y:0},'*')}catch(e){}}
+addEventListener('resize',()=>{const p=perPage();if(p!==lastPer){page=Math.floor(page*lastPer/p);lastPer=p;draw()}});
 
 const fd=s=>new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
 document.getElementById('range').textContent='Last update '+FEED.updated;
-document.getElementById('q').addEventListener('input',e=>{query=e.target.value;shown=PAGE;draw()});
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value;page=0;draw()});
 draw();
 }
 /* content comes from feed.json, rewritten by the Slack sync; no-cache so a fresh sync shows up on the next visit */
