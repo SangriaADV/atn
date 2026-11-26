@@ -76,5 +76,15 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
-      - id: deployment
+      # GitHub sometimes can't find a just-uploaded artifact ("No artifacts named
+      # github-pages"). Try once, wait, then retry so a blip doesn't leave the site stale.
+      - id: first_try
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.first_try.outcome == 'failure'
+        run: sleep 30
+      - id: retry
+        if: steps.first_try.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - id: deployment
+        run: echo "page_url=${{ steps.first_try.outputs.page_url || steps.retry.outputs.page_url }}" >> "$GITHUB_OUTPUT"
